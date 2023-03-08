@@ -1,0 +1,46 @@
+version: '3'
+services:
+
+  gremcat-mysql:
+    image: "mysql/mysql-server:latest"
+    container_name: gremcat-mysql
+    volumes:
+      - gremcat-data:/var/lib/mysql
+# uncomment to open up mysql to the world on 6603
+#   ports:
+#     - 6603:3306
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=1
+      - MYSQL_ROOT_USER=root
+      - MYSQL_DATABASE=ideas_db
+      - MYSQL_USER=ideas_user
+      - MYSQL_PASSWORD=ideas411
+## Note: manual startup commands are possible using shell scripts
+#  inside a special directory. To enable, create scripts in gremcat-mysql/
+#  and add line below to 'volumes:'
+#   - "./gremcat-mysql:/docker-entrypoint-initdb.d"
+#
+## The following is already covered though the default container entrypoint:
+# https://github.com/docker-library/mysql/blob/0590e4efd2b31ec794383f084d419dea9bc752c4/5.7/docker-entrypoint.sh#L166-L174
+#CREATE USER 'ideas_user'@'%' IDENTIFIED BY 'mysafepass';
+#GRANT ALL ON 'ideas_db'.* TO 'ideas_user'@'%';
+#FLUSH PRIVILEGES;
+
+  gremcat-app:
+    build: ./gremcat-app
+    container_name: gremcat-app
+    environment:
+      - DBHOST=gremcat-mysql
+      - DBPORT=3306
+      - DBNAME=ideas_db
+      - DBUSER=ideas_user
+      - DBPASS=ideas411
+    ports:
+      - 4200:8888
+    links:
+      - gremcat-mysql
+    volumes:
+      - ./notebooks:/home/jovyan/work
+
+volumes:
+  gremcat-data: {}
